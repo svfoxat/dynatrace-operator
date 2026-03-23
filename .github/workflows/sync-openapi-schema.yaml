@@ -35,7 +35,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          repo_url="${SOURCE_REPO_URL}"
+          repo_url="https://bitbucket.lab.dynatrace.org/scm/rx/cluster-openapi-docs.git"
           clone_url="${repo_url/https:\/\//https:\/\/x-token-auth:${SOURCE_ACCESS_TOKEN}@}"
 
           echo "Cloning source repository (branch: ${BRANCH})..."

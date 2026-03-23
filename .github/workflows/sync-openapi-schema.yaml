@@ -1,0 +1,95 @@
+name: Sync OpenAPI schema
+
+on:
+  push:
+    branches:
+      - feat/api-spec-automation
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to checkout in the source repository"
+        required: true
+        type: string
+      schema_name:
+        description: "Schema name (maps to cluster-openapi-docs/documents/<name>/spec3.json)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync-schema:
+    name: Sync OpenAPI schema
+    runs-on:
+      - self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Clone source repository
+        run: |
+          set -euo pipefail
+
+          repo_url="${SOURCE_REPO_URL}"
+          clone_url="${repo_url/https:\/\//https:\/\/x-token-auth:${SOURCE_ACCESS_TOKEN}@}"
+
+          echo "Cloning source repository (branch: ${BRANCH})..."
+          git clone --depth 1 --branch "${BRANCH}" "${clone_url}" source-repo
+        env:
+          SOURCE_REPO_URL: ${{ secrets.API_SPEC_SOURCE_REPO_URL }}
+          SOURCE_ACCESS_TOKEN: ${{ secrets.API_SPEC_SOURCE_ACCESS_TOKEN }}
+          BRANCH: ${{ inputs.branch }}
+
+      - name: Compare and update schema
+        id: compare
+        run: |
+          set -euo pipefail
+
+          source_file="source-repo/cluster-openapi-docs/documents/${SCHEMA_NAME}/spec3.json"
+          target_file="api/${SCHEMA_NAME}/spec3.json"
+
+          if [ ! -f "${source_file}" ]; then
+            echo "::error::Source file not found: ${source_file}"
+            exit 1
+          fi
+
+          mkdir -p "api/${SCHEMA_NAME}"
+
+          if [ -f "${target_file}" ] && diff -q "${source_file}" "${target_file}" > /dev/null 2>&1; then
+            echo "Schema '${SCHEMA_NAME}' is already up to date."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Schema '${SCHEMA_NAME}' has changed, updating..."
+            cp "${source_file}" "${target_file}"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          SCHEMA_NAME: ${{ inputs.schema_name }}
+
+      - name: Cleanup source clone
+        if: always()
+        run: rm -rf source-repo
+
+      # - name: Create pull request
+      #   if: steps.compare.outputs.changed == 'true'
+      #   uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      #   with:
+      #     base: main
+      #     delete-branch: true
+      #     branch: sync-openapi-schema/${{ inputs.schema_name }}
+      #     add-paths: |
+      #       api/${{ inputs.schema_name }}/spec3.json
+      #     title: "[Automatic] Update OpenAPI schema: ${{ inputs.schema_name }}"
+      #     labels: "ci"
+      #     commit-message: "chore: sync OpenAPI schema ${{ inputs.schema_name }} from source (${{ inputs.branch }})"
+      #     body: |
+      #       # Description
+      #       This PR updates the OpenAPI schema `${{ inputs.schema_name }}` from the source repository.
+      #
+      #       - **Source branch**: `${{ inputs.branch }}`
+      #       - **Schema path**: `api/${{ inputs.schema_name }}/spec3.json`

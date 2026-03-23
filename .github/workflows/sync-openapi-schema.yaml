@@ -1,9 +1,6 @@
 name: Sync OpenAPI schema
 
 on:
-#  push:
-#    branches:
-#      - feat/api-spec-automation
   workflow_dispatch:
     inputs:
       branch:
@@ -73,6 +70,16 @@ jobs:
       - name: Cleanup source clone
         if: always()
         run: rm -rf source-repo
+
+      - name: Remove example secrets from schema json
+        if: steps.compare.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          target_file="api/${SCHEMA_NAME}/spec3.json"
+
+          sed -i 's/(dt.*)\.([A-Z0-9]{8})\.([A-Z0-9]{64})/****.****.****/g' "${target_file}"
+        env:
+          SCHEMA_NAME: ${{ inputs.schema_name }}
 
       - name: Create pull request
         if: steps.compare.outputs.changed == 'true'

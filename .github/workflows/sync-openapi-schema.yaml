@@ -34,7 +34,7 @@ jobs:
       - name: Clone source repository
         run: |
           set -euo pipefail
-          repo_url="https://${SOURCE_USERNAME}@${SOURCE_ACCESS_TOKEN}@${SOURCE_REPO_URL}"
+          repo_url="https://${SOURCE_USERNAME}:${SOURCE_ACCESS_TOKEN}@${SOURCE_REPO_URL}"
 
           echo "Cloning source repository (branch: ${BRANCH})..."
           git clone --depth 1 --branch "${BRANCH}" "${repo_url}" source-repo

@@ -34,12 +34,10 @@ jobs:
       - name: Clone source repository
         run: |
           set -euo pipefail
-
           repo_url="${SOURCE_REPO_URL}"
-          clone_url="${repo_url/https:\/\//https:\/\/x-token-auth:${SOURCE_ACCESS_TOKEN}@}"
 
           echo "Cloning source repository (branch: ${BRANCH})..."
-          git clone --depth 1 --branch "${BRANCH}" "${clone_url}" source-repo
+          git clone -c 'Authorization: Bearer ${SOURCE_ACCESS_TOKEN}' --depth 1 --branch "${BRANCH}" "${clone_url}" source-repo
         env:
           SOURCE_REPO_URL: ${{ secrets.API_SPEC_SOURCE_REPO_URL }}
           SOURCE_ACCESS_TOKEN: ${{ secrets.API_SPEC_SOURCE_ACCESS_TOKEN }}

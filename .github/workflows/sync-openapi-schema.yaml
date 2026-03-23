@@ -17,17 +17,11 @@ permissions:
   pull-requests: write
 
 jobs:
-  sync-schema:
-    name: Sync OpenAPI schema
+  clone-source:
+    name: Clone source repository
     runs-on:
       - self-hosted
     steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          ref: main
-          persist-credentials: false
-
       - name: Clone source repository
         run: |
           set -euo pipefail
@@ -40,6 +34,35 @@ jobs:
           SOURCE_ACCESS_TOKEN: ${{ secrets.API_SPEC_SOURCE_ACCESS_TOKEN }}
           SOURCE_USERNAME: ${{ secrets.API_SPEC_SOURCE_USERNAME }}
           BRANCH: ${{ inputs.branch }}
+
+      - name: Upload source schema
+        uses: actions/upload-artifact@ea165f8d65b6db9a8b9c8a4e70a16571fa8fbc09 # v4.6.2
+        with:
+          name: source-schema
+          path: source-repo/documents/${{ inputs.schema_name }}/spec3.json
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Cleanup source clone
+        if: always()
+        run: rm -rf source-repo
+
+  sync-schema:
+    name: Sync OpenAPI schema
+    needs: clone-source
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Download source schema
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: source-schema
+          path: source-repo/documents/${{ inputs.schema_name }}
 
       - name: Compare and update schema
         id: compare

@@ -1,9 +1,9 @@
 name: Sync OpenAPI schema
 
 on:
-  push:
-    branches:
-      - feat/api-spec-automation
+#  push:
+#    branches:
+#      - feat/api-spec-automation
   workflow_dispatch:
     inputs:
       branch:
@@ -35,7 +35,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          repo_url="https://bitbucket.lab.dynatrace.org/scm/rx/cluster-openapi-docs.git"
+          repo_url="https://bitbucket.lab.dynatrace.org/scm/rx/cluster-openapi-docs"
           clone_url="${repo_url/https:\/\//https:\/\/x-token-auth:${SOURCE_ACCESS_TOKEN}@}"
 
           echo "Cloning source repository (branch: ${BRANCH})..."

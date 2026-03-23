@@ -37,7 +37,7 @@ jobs:
           repo_url="https://bitbucket.lab.dynatrace.org/scm/rx/cluster-openapi-docs.git"
 
           echo "Cloning source repository (branch: ${BRANCH})..."
-          git clone -c 'Authorization: Bearer ${SOURCE_ACCESS_TOKEN}' --depth 1 --branch "${BRANCH}" "${repo_url}" source-repo
+          git clone -c 'http.extraHeader=Authorization: Bearer ${SOURCE_ACCESS_TOKEN}' --depth 1 --branch "${BRANCH}" "${repo_url}" source-repo
         env:
           SOURCE_REPO_URL: ${{ secrets.API_SPEC_SOURCE_REPO_URL }}
           SOURCE_ACCESS_TOKEN: ${{ secrets.API_SPEC_SOURCE_ACCESS_TOKEN }}

@@ -34,7 +34,7 @@ jobs:
       - name: Clone source repository
         run: |
           set -euo pipefail
-          repo_url="${SOURCE_REPO_URL}"
+          repo_url="https://bitbucket.lab.dynatrace.org/scm/rx/cluster-openapi-docs.git"
 
           echo "Cloning source repository (branch: ${BRANCH})..."
           git clone -c 'Authorization: Bearer ${SOURCE_ACCESS_TOKEN}' --depth 1 --branch "${BRANCH}" "${repo_url}" source-repo

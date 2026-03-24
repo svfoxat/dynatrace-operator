@@ -21,14 +21,21 @@ jobs:
     name: Clone source repository
     runs-on:
       - self-hosted
+    outputs:
+      source-commit-sha: ${{ steps.clone.outputs.sha }}
     steps:
       - name: Clone source repository
+        id: clone
         run: |
           set -euo pipefail
           repo_url="https://${SOURCE_USERNAME}:${SOURCE_ACCESS_TOKEN}@${SOURCE_REPO_URL}"
 
           echo "Cloning source repository (branch: ${BRANCH})..."
           git clone --depth 1 --branch "${BRANCH}" "${repo_url}" source-repo
+
+          sha=$(git -C source-repo rev-parse HEAD)
+          echo "Source commit SHA: ${sha}"
+          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
         env:
           SOURCE_REPO_URL: ${{ secrets.API_SPEC_SOURCE_REPO_URL }}
           SOURCE_ACCESS_TOKEN: ${{ secrets.API_SPEC_SOURCE_ACCESS_TOKEN }}
@@ -104,6 +111,15 @@ jobs:
         env:
           SCHEMA_NAME: ${{ inputs.schema_name }}
 
+      - name: Extract API version
+        id: api-version
+        if: steps.compare.outputs.changed == 'true'
+        run: |
+          version=$(jq -r '.info.version // "unknown"' "api/${SCHEMA_NAME}/spec3.json")
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+        env:
+          SCHEMA_NAME: ${{ inputs.schema_name }}
+
       - name: Create pull request
         if: steps.compare.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
@@ -112,7 +128,7 @@ jobs:
           delete-branch: true
           branch: sync-openapi-schema/${{ inputs.schema_name }}
           add-paths: |
-            api/${{ inputs.schema_name }}/spec3.json
+            api/*/spec3.json
           title: "[Automatic] Update OpenAPI schema: ${{ inputs.schema_name }}"
           labels: "ci"
           commit-message: "chore: sync OpenAPI schema ${{ inputs.schema_name }} from source (${{ inputs.branch }})"
@@ -120,5 +136,10 @@ jobs:
             # Description
             This PR updates the OpenAPI schema `${{ inputs.schema_name }}` from the source repository.
 
-            - **Source branch**: `${{ inputs.branch }}`
-            - **Schema path**: `api/${{ inputs.schema_name }}/spec3.json`
+            | | |
+            |---|---|
+            | **Source branch** | `${{ inputs.branch }}` |
+            | **Source commit** | `${{ needs.clone-source.outputs.source-commit-sha }}` |
+            | **API version** | `${{ steps.api-version.outputs.version }}` |
+            | **Schema path** | `api/${{ inputs.schema_name }}/spec3.json` |
+            | **Workflow run** | [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |

@@ -1,4 +1,4 @@
-name: Sync OpenAPI schema
+name: Sync OpenAPI schemas
 
 on:
   workflow_dispatch:

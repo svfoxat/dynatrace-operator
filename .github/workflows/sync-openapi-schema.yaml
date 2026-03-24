@@ -111,12 +111,18 @@ jobs:
         env:
           SCHEMA_NAME: ${{ inputs.schema_name }}
 
-      - name: Extract API version
+      - name: Extract API versions
         id: api-version
         if: steps.compare.outputs.changed == 'true'
         run: |
-          version=$(jq -r '.info.version // "unknown"' "api/${SCHEMA_NAME}/spec3.json")
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          target_file="api/${SCHEMA_NAME}/spec3.json"
+
+          new_version=$(jq -r '.info.version // "unknown"' "${target_file}")
+          echo "new=${new_version}" >> "$GITHUB_OUTPUT"
+
+          old_version=$(git show HEAD:"${target_file}" 2>/dev/null | jq -r '.info.version // "unknown"' 2>/dev/null || echo "N/A")
+          echo "old=${old_version}" >> "$GITHUB_OUTPUT"
         env:
           SCHEMA_NAME: ${{ inputs.schema_name }}
 
@@ -129,16 +135,16 @@ jobs:
           branch: sync-openapi-schema/${{ inputs.schema_name }}
           add-paths: |
             api/*/spec3.json
-          title: "[Automatic] Update OpenAPI schema: ${{ inputs.schema_name }}"
+          title: "chore: sync OpenAPI schema ${{ inputs.schema_name }} from source (${{ inputs.branch }})"
           commit-message: "chore: sync OpenAPI schema ${{ inputs.schema_name }} from source (${{ inputs.branch }})"
           body: |
             # Description
             This PR updates the OpenAPI schema `${{ inputs.schema_name }}` from the source repository.
 
-            | | |
-            |---|---|
-            | **Source branch** | `${{ inputs.branch }}` |
-            | **Source commit** | `${{ needs.clone-source.outputs.source-commit-sha }}` |
-            | **API version** | `${{ steps.api-version.outputs.version }}` |
-            | **Schema path** | `api/${{ inputs.schema_name }}/spec3.json` |
-            | **Workflow run** | [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |
+            | | From | To |
+            |---|---|---|
+            | **API version** | `${{ steps.api-version.outputs.old }}` | `${{ steps.api-version.outputs.new }}` |
+            | **Source branch** | | `${{ inputs.branch }}` |
+            | **Source commit** | | `${{ needs.clone-source.outputs.source-commit-sha }}` |
+            | **Schema path** | | `api/${{ inputs.schema_name }}/spec3.json` |
+            | **Workflow run** | | [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |

@@ -77,14 +77,14 @@ jobs:
           set -euo pipefail
 
           source_file="source-repo/documents/${SCHEMA_NAME}/spec3.json"
-          target_file="api/${SCHEMA_NAME}/spec3.json"
+          target_file="api/oapi/${SCHEMA_NAME}/spec3.json"
 
           if [ ! -f "${source_file}" ]; then
             echo "::error::Source file not found: ${source_file}"
             exit 1
           fi
 
-          mkdir -p "api/${SCHEMA_NAME}"
+          mkdir -p "api/oapi/${SCHEMA_NAME}"
 
           if [ -f "${target_file}" ] && diff -q "${source_file}" "${target_file}" > /dev/null 2>&1; then
             echo "Schema '${SCHEMA_NAME}' is already up to date."
@@ -105,7 +105,7 @@ jobs:
         if: steps.compare.outputs.changed == 'true'
         run: |
           set -euo pipefail
-          target_file="api/${SCHEMA_NAME}/spec3.json"
+          target_file="api/oapi/${SCHEMA_NAME}/spec3.json"
 
           sed -E -i 's/(dt[^.]*)\.([A-Z0-9]{8})\.([A-Z0-9]{64})/example-token/g' "${target_file}"
         env:
@@ -116,7 +116,7 @@ jobs:
         if: steps.compare.outputs.changed == 'true'
         run: |
           set -euo pipefail
-          target_file="api/${SCHEMA_NAME}/spec3.json"
+          target_file="api/oapi/${SCHEMA_NAME}/spec3.json"
 
           new_version=$(jq -r '.info.version // "unknown"' "${target_file}")
           echo "new=${new_version}" >> "$GITHUB_OUTPUT"
@@ -134,17 +134,17 @@ jobs:
           delete-branch: true
           branch: sync-openapi-schema/${{ inputs.schema_name }}
           add-paths: |
-            api/*/spec3.json
+            api/oapi/*/spec3.json
           title: "chore: sync OpenAPI schema ${{ inputs.schema_name }} from source (${{ inputs.branch }})"
           commit-message: "chore: sync OpenAPI schema ${{ inputs.schema_name }} from source (${{ inputs.branch }})"
           body: |
             # Description
             This PR updates the OpenAPI schema `${{ inputs.schema_name }}` from the source repository.
 
-            | | From | To |
-            |---|---|---|
-            | **API version** | `${{ steps.api-version.outputs.old }}` | `${{ steps.api-version.outputs.new }}` |
-            | **Source branch** | | `${{ inputs.branch }}` |
-            | **Source commit** | | `${{ needs.clone-source.outputs.source-commit-sha }}` |
-            | **Schema path** | | `api/${{ inputs.schema_name }}/spec3.json` |
-            | **Workflow run** | | [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |
+            | | |
+            |---|---|
+            | **API version** | `${{ steps.api-version.outputs.old }}` → `${{ steps.api-version.outputs.new }}` |
+            | **Source branch** | `${{ inputs.branch }}` |
+            | **Source commit** | `${{ needs.clone-source.outputs.source-commit-sha }}` |
+            | **Schema path** | `api/oapi/${{ inputs.schema_name }}/spec3.json` |
+            | **Workflow run** | [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |

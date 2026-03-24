@@ -19,6 +19,7 @@ jobs:
     outputs:
       matrix: ${{ steps.config.outputs.matrix }}
       schemas_json: ${{ steps.config.outputs.schemas_json }}
+      has_schemas: ${{ steps.config.outputs.has_schemas }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -27,14 +28,23 @@ jobs:
         id: config
         run: |
           set -euo pipefail
-          schemas=$(yq -o=json -I=0 '.schemas' api/oapi/sync-config.yaml)
-          echo "matrix={\"include\":${schemas}}" >> "$GITHUB_OUTPUT"
-          echo "schemas_json=${schemas}" >> "$GITHUB_OUTPUT"
-          echo "Schemas: ${schemas}"
+          schemas=$(yq -o=json -I=0 '.schemas // []' api/oapi/sync-config.yaml)
+          count=$(echo "${schemas}" | jq 'length')
+
+          if [ "${count}" -eq 0 ]; then
+            echo "No schemas configured, nothing to sync."
+            echo "has_schemas=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_schemas=true" >> "$GITHUB_OUTPUT"
+            echo "matrix={\"include\":${schemas}}" >> "$GITHUB_OUTPUT"
+            echo "schemas_json=${schemas}" >> "$GITHUB_OUTPUT"
+            echo "Schemas (${count}): ${schemas}"
+          fi
 
   clone-source:
     name: "Clone source: ${{ matrix.name }}"
     needs: prepare
+    if: needs.prepare.outputs.has_schemas == 'true'
     runs-on:
       - self-hosted
     strategy:
@@ -75,6 +85,7 @@ jobs:
   sync-schemas:
     name: Sync OpenAPI schemas
     needs: [prepare, clone-source]
+    if: needs.prepare.outputs.has_schemas == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

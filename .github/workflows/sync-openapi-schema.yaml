@@ -107,7 +107,7 @@ jobs:
           set -euo pipefail
           target_file="api/oapi/${SCHEMA_NAME}/spec3.json"
 
-          sed -E -i 's/(dt[^.]*)\.([A-Z0-9]{8})\.([A-Z0-9]{64})/example-token/g' "${target_file}"
+          sed -E -i 's/(dt[^.]*)\.([A-Z0-9]{8})(\.([A-Z0-9]{64})?|)/example-token/g' "${target_file}"
         env:
           SCHEMA_NAME: ${{ inputs.schema_name }}
 

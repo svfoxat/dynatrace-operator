@@ -130,7 +130,6 @@ jobs:
           add-paths: |
             api/*/spec3.json
           title: "[Automatic] Update OpenAPI schema: ${{ inputs.schema_name }}"
-          labels: "ci"
           commit-message: "chore: sync OpenAPI schema ${{ inputs.schema_name }} from source (${{ inputs.branch }})"
           body: |
             # Description

@@ -56,19 +56,21 @@ jobs:
           set -euo pipefail
           repo_url="https://${SOURCE_USERNAME}:${SOURCE_ACCESS_TOKEN}@${SOURCE_REPO_URL}"
 
-          echo "Cloning source repository (branch: ${{ matrix.branch }})..."
-          git clone --depth 1 --branch "${{ matrix.branch }}" "${repo_url}" source-repo
+          echo "Cloning source repository (branch: ${BRANCH})..."
+          git clone --depth 1 --branch "${BRANCH}" "${repo_url}" source-repo
 
           sha=$(git -C source-repo rev-parse HEAD)
           echo "Source commit SHA: ${sha}"
 
           mkdir -p output
-          cp "source-repo/documents/${{ matrix.name }}/spec3.json" output/spec3.json
+          cp "source-repo/documents/${SCHEMA_NAME}/spec3.json" output/spec3.json
           echo "${sha}" > output/source-sha.txt
         env:
           SOURCE_REPO_URL: ${{ secrets.API_SPEC_SOURCE_REPO_URL }}
           SOURCE_ACCESS_TOKEN: ${{ secrets.API_SPEC_SOURCE_ACCESS_TOKEN }}
           SOURCE_USERNAME: ${{ secrets.API_SPEC_SOURCE_USERNAME }}
+          BRANCH: ${{ matrix.branch }}
+          SCHEMA_NAME: ${{ matrix.name }}
 
       - name: Upload source schema
         uses: actions/upload-artifact@v6
@@ -114,7 +116,7 @@ jobs:
           pr_body+="|---|---|---|---|"$'\n'
           schemas_summary=""
 
-          for row in $(echo '${{ needs.prepare.outputs.schemas_json }}' | jq -c '.[]'); do
+          for row in $(echo "${SCHEMAS_JSON}" | jq -c '.[]'); do
             name=$(echo "${row}" | jq -r '.name')
             branch=$(echo "${row}" | jq -r '.branch')
 
@@ -155,13 +157,17 @@ jobs:
             echo "schemas_summary=${schemas_summary}" >> "$GITHUB_OUTPUT"
 
             pr_body+=$'\n'"| | |"$'\n'"|---|---|"$'\n'
-            pr_body+="| **Workflow run** | [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |"$'\n'
+            pr_body+="| **Workflow run** | [#${WORKFLOW_RUN_NUMBER}](${WORKFLOW_RUN_URL}) |"$'\n'
 
             EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
             echo "pr_body<<${EOF}" >> "$GITHUB_OUTPUT"
             echo "${pr_body}" >> "$GITHUB_OUTPUT"
             echo "${EOF}" >> "$GITHUB_OUTPUT"
           fi
+        env:
+          SCHEMAS_JSON: ${{ needs.prepare.outputs.schemas_json }}
+          WORKFLOW_RUN_NUMBER: ${{ github.run_number }}
+          WORKFLOW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
       - name: Create pull request
         if: steps.sync.outputs.changed == 'true'

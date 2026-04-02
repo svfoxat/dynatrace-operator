@@ -2748,7 +2748,7 @@
         "summary" : "Lists all attacks",
         "tags" : [ "Attacks" ],
         "x-allow-access-with-management-zone-permissions" : true,
-        "x-internal-owner" : "_team-netsky",
+        "x-internal-owner" : "_team-meltdown",
         "x-permissions" : [ "environment:roles:manage-security-problems", "environment:roles:view-security-problems" ],
         "x-supports-personal-access-token" : true,
         "x-token-scopes" : [ "attacks.read" ]
@@ -2839,7 +2839,7 @@
         "tags" : [ "Attacks" ],
         "x-allow-access-with-management-zone-permissions" : true,
         "x-feature-flag" : "ENABLE_CASP_ATTACK_API_AGGREGATE",
-        "x-internal-owner" : "_team-netsky",
+        "x-internal-owner" : "_team-meltdown",
         "x-maturity" : "IN_DEVELOPMENT",
         "x-permissions" : [ "environment:roles:manage-security-problems", "environment:roles:view-security-problems" ],
         "x-supports-personal-access-token" : true,
@@ -2905,7 +2905,7 @@
         "summary" : "Gets the specified attack",
         "tags" : [ "Attacks" ],
         "x-allow-access-with-management-zone-permissions" : true,
-        "x-internal-owner" : "_team-netsky",
+        "x-internal-owner" : "_team-meltdown",
         "x-permissions" : [ "environment:roles:manage-security-problems", "environment:roles:view-security-problems" ],
         "x-supports-personal-access-token" : true,
         "x-token-scopes" : [ "attacks.read" ]
@@ -3829,7 +3829,6 @@
         "summary" : "Gets the information about monitored entities",
         "tags" : [ "Monitored entities" ],
         "x-allow-access-with-management-zone-permissions" : true,
-        "x-deprecated-in-saas" : "Operation is deprecated",
         "x-internal-owner" : "stefan.gradl",
         "x-permissions" : [ "environment:roles:viewer" ],
         "x-supports-personal-access-token" : true,
@@ -3904,7 +3903,6 @@
         "summary" : "Creates or updates a custom device",
         "tags" : [ "Monitored entities" ],
         "x-allow-access-with-management-zone-permissions" : true,
-        "x-deprecated-in-saas" : "Operation is deprecated",
         "x-internal-owner" : "stefan.gradl",
         "x-permissions" : [ "environment:roles:manage-settings" ],
         "x-supports-personal-access-token" : true,
@@ -3979,7 +3977,6 @@
         "summary" : "Deletes the security context for all entities matching the entity selector.",
         "tags" : [ "Monitored entities" ],
         "x-allow-access-with-management-zone-permissions" : true,
-        "x-deprecated-in-saas" : "Operation is deprecated",
         "x-internal-owner" : "stefan.gradl",
         "x-permissions" : [ "environment:roles:manage-settings", "settings:objects:write" ],
         "x-supports-personal-access-token" : true,
@@ -4062,7 +4059,6 @@
         "summary" : "Sets the given security context for all entities matching the entity selector. ",
         "tags" : [ "Monitored entities" ],
         "x-allow-access-with-management-zone-permissions" : true,
-        "x-deprecated-in-saas" : "Operation is deprecated",
         "x-internal-owner" : "stefan.gradl",
         "x-permissions" : [ "environment:roles:manage-settings", "settings:objects:write" ],
         "x-supports-personal-access-token" : true,
@@ -4142,7 +4138,6 @@
         "summary" : "Gets the properties of the specified monitored entity",
         "tags" : [ "Monitored entities" ],
         "x-allow-access-with-management-zone-permissions" : true,
-        "x-deprecated-in-saas" : "Operation is deprecated",
         "x-internal-owner" : "stefan.gradl",
         "x-permissions" : [ "environment:roles:viewer" ],
         "x-supports-personal-access-token" : true,
@@ -4226,7 +4221,6 @@
         "summary" : "Streams monitored entities",
         "tags" : [ "Monitored entities" ],
         "x-allow-access-with-management-zone-permissions" : true,
-        "x-deprecated-in-saas" : "Operation is deprecated",
         "x-feature-flag" : "ME_GET_ENTITIES_STREAMING_ENDPOINT",
         "x-internal-owner" : "stefan.gradl",
         "x-maturity" : "IN_DEVELOPMENT",
@@ -4298,7 +4292,6 @@
         "summary" : "Gets a list of properties for all entity types",
         "tags" : [ "Monitored entities" ],
         "x-allow-access-with-management-zone-permissions" : true,
-        "x-deprecated-in-saas" : "Operation is deprecated",
         "x-internal-owner" : "stefan.gradl",
         "x-permissions" : [ "environment:roles:viewer" ],
         "x-supports-personal-access-token" : true,
@@ -4360,7 +4353,6 @@
         "summary" : "Gets a list of properties for the specified entity type",
         "tags" : [ "Monitored entities" ],
         "x-allow-access-with-management-zone-permissions" : true,
-        "x-deprecated-in-saas" : "Operation is deprecated",
         "x-internal-owner" : "stefan.gradl",
         "x-permissions" : [ "environment:roles:viewer" ],
         "x-supports-personal-access-token" : true,
@@ -8851,7 +8843,6 @@
         "tags" : [ "Logs" ],
         "x-allow-access-with-management-zone-permissions" : true,
         "x-deprecated-in-saas" : "Operation is deprecated",
-        "x-feature-flag" : "LOGS_REST_API_V2",
         "x-internal-owner" : "kasper.kulikowski",
         "x-maturity" : "EARLY_ADOPTER",
         "x-permissions" : [ "environment:roles:logviewer", "storage:logs:read" ],
@@ -9809,7 +9800,6 @@
         "tags" : [ "Logs" ],
         "x-allow-access-with-management-zone-permissions" : true,
         "x-deprecated-in-saas" : "Operation is deprecated",
-        "x-feature-flag" : "LOGS_REST_API_V2",
         "x-internal-owner" : "kasper.kulikowski",
         "x-maturity" : "EARLY_ADOPTER",
         "x-permissions" : [ "environment:roles:logviewer", "storage:logs:read" ],
@@ -38553,7 +38543,7 @@
           "visualizationType" : {
             "type" : "string",
             "description" : "Visualization type of the chart",
-            "enum" : [ "GRAPH_CHART", "HEATMAP", "HONEYCOMB", "PIE_CHART", "SINGLE_VALUE", "STACKED_AREA", "STACKED_COLUMN", "TABLE", "TOP_LIST" ]
+            "enum" : [ "GRAPH_CHART", "HEATMAP", "HISTOGRAM", "HONEYCOMB", "PIE_CHART", "SINGLE_VALUE", "STACKED_AREA", "STACKED_COLUMN", "TABLE", "TOP_LIST" ]
           },
           "width" : {
             "type" : "string",
@@ -38745,7 +38735,7 @@
           "visualizationType" : {
             "type" : "string",
             "description" : "Visualization type of the chart",
-            "enum" : [ "GRAPH_CHART", "HEATMAP", "HONEYCOMB", "PIE_CHART", "SINGLE_VALUE", "STACKED_AREA", "STACKED_COLUMN", "TABLE", "TOP_LIST" ]
+            "enum" : [ "GRAPH_CHART", "HEATMAP", "HISTOGRAM", "HONEYCOMB", "PIE_CHART", "SINGLE_VALUE", "STACKED_AREA", "STACKED_COLUMN", "TABLE", "TOP_LIST" ]
           },
           "width" : {
             "type" : "string",

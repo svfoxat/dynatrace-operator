@@ -1,5 +1,5 @@
 schemas:
   - name: tenantApiV2
-    branch: release/1.334.x
+    branch: release/1.335.x
   - name: clusterApi
     branch: release/1.335.x

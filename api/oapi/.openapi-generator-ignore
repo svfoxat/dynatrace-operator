@@ -11,5 +11,7 @@ go.sum
 test/*
 *_test.go
 
-# Documentation is handled separately
+# Documentation
 docs/*
+*.md
+README.md

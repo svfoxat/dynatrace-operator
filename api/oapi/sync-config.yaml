@@ -3,4 +3,3 @@ schemas:
    branch: release/1.334.x
    generate:
      packageName: tenantapiv2
-     additionalProperties: "withGoMod=false"

@@ -182,6 +182,13 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Read defaults from generator-config.yaml
+          gen_config="api/oapi/generator-config.yaml"
+          default_generator=$(yq -r '.generator' "${gen_config}")
+          default_version=$(yq -r '.generatorVersion' "${gen_config}")
+          default_output_dir=$(yq -r '.outputDir' "${gen_config}")
+          default_additional_props=$(yq -r '.additionalProperties' "${gen_config}")
+
           for row in $(echo "${SCHEMAS_JSON}" | jq -c '.[]'); do
             name=$(echo "${row}" | jq -r '.name')
             generate=$(echo "${row}" | jq -r '.generate // empty')
@@ -197,11 +204,14 @@ jobs:
               continue
             fi
 
+            # Per-schema overrides, falling back to defaults from generator-config.yaml
+            generator=$(echo "${row}" | jq -r ".generate.generator // \"${default_generator}\"")
+            version=$(echo "${row}" | jq -r ".generate.generatorVersion // \"${default_version}\"")
             package_name=$(echo "${row}" | jq -r '.generate.packageName // .name')
-            additional_props=$(echo "${row}" | jq -r '.generate.additionalProperties // "withGoMod=false"')
-            output_dir="pkg/clients/generated/${name}"
+            additional_props=$(echo "${row}" | jq -r ".generate.additionalProperties // \"${default_additional_props}\"")
+            output_dir=$(echo "${row}" | jq -r ".generate.outputDir // \"${default_output_dir}/${name}\"")
 
-            echo "Generating Go SDK for '${name}' (package: ${package_name})..."
+            echo "Generating SDK for '${name}' (generator: ${generator}, package: ${package_name}, version: ${version})..."
 
             rm -rf "${output_dir}"
             mkdir -p "${output_dir}"
@@ -209,9 +219,9 @@ jobs:
             docker run --rm \
               -v "${PWD}:/local" \
               -u "$(id -u):$(id -g)" \
-              openapitools/openapi-generator-cli:v7.12.0 generate \
+              "openapitools/openapi-generator-cli:${version}" generate \
               -i "/local/${spec_file}" \
-              -g go \
+              -g "${generator}" \
               -o "/local/${output_dir}" \
               --package-name "${package_name}" \
               --additional-properties="${additional_props}" \

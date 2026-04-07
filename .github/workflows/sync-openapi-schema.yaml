@@ -15,6 +15,7 @@ jobs:
       matrix: ${{ steps.config.outputs.matrix }}
       schemas_json: ${{ steps.config.outputs.schemas_json }}
       has_schemas: ${{ steps.config.outputs.has_schemas }}
+      generator_config_json: ${{ steps.config.outputs.generator_config_json }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -36,6 +37,9 @@ jobs:
             echo "schemas_json=${schemas}" >> "$GITHUB_OUTPUT"
             echo "Schemas (${count}): ${schemas}"
           fi
+
+          generator_config=$(yq -o=json -I=0 '.' api/oapi/generator-config.yaml)
+          echo "generator_config_json=${generator_config}" >> "$GITHUB_OUTPUT"
 
   clone-source:
     name: "Clone source: ${{ matrix.name }}"
@@ -182,12 +186,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Read defaults from generator-config.yaml
-          gen_config="api/oapi/generator-config.yaml"
-          default_generator=$(yq -r '.generator' "${gen_config}")
-          default_version=$(yq -r '.generatorVersion' "${gen_config}")
-          default_output_dir=$(yq -r '.outputDir' "${gen_config}")
-          default_additional_props=$(yq -r '.additionalProperties' "${gen_config}")
+          # Read defaults from generator-config.yaml (passed from prepare job)
+          default_generator=$(echo "${GENERATOR_CONFIG_JSON}" | jq -r '.generator')
+          default_version=$(echo "${GENERATOR_CONFIG_JSON}" | jq -r '.generatorVersion')
+          default_output_dir=$(echo "${GENERATOR_CONFIG_JSON}" | jq -r '.outputDir')
+          default_additional_props=$(echo "${GENERATOR_CONFIG_JSON}" | jq -r '.additionalProperties')
 
           for row in $(echo "${SCHEMAS_JSON}" | jq -c '.[]'); do
             name=$(echo "${row}" | jq -r '.name')
@@ -238,6 +241,7 @@ jobs:
           done
         env:
           SCHEMAS_JSON: ${{ needs.prepare.outputs.schemas_json }}
+          GENERATOR_CONFIG_JSON: ${{ needs.prepare.outputs.generator_config_json }}
 
       - name: Tidy Go modules
         if: steps.sync.outputs.changed == 'true'

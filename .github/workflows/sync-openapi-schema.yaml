@@ -216,9 +216,6 @@ jobs:
               --package-name "${package_name}" \
               --additional-properties="${additional_props}" \
               --skip-validate-spec
-              --git-user-id Dynatrace \
-              --git-repo-id "dynatrace-operator/${output_dir}" \
-              --ignore-file-override "/local/api/oapi/.openapi-generator-ignore"
 
             echo "SDK generated successfully for '${name}' at ${output_dir}"
           done

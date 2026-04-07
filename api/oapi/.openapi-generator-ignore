@@ -7,5 +7,9 @@ git_push.sh
 go.mod
 go.sum
 
+# Generated tests use placeholder import paths (known openapi-generator issue)
+test/*
+*_test.go
+
 # Documentation is handled separately
 docs/*

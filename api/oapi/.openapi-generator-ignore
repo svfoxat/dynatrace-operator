@@ -1,0 +1,11 @@
+# Files not needed in the repository
+.travis.yml
+git_push.sh
+.gitignore
+
+# Go module files are managed by the parent module
+go.mod
+go.sum
+
+# Documentation is handled separately
+docs/*

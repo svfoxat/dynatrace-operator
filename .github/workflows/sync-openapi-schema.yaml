@@ -171,6 +171,63 @@ jobs:
           WORKFLOW_RUN_NUMBER: ${{ github.run_number }}
           WORKFLOW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
+      - name: Set up Go
+        if: steps.sync.outputs.changed == 'true'
+        uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
+        with:
+          go-version-file: go.mod
+
+      - name: Generate Go SDKs
+        if: steps.sync.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+
+          for row in $(echo "${SCHEMAS_JSON}" | jq -c '.[]'); do
+            name=$(echo "${row}" | jq -r '.name')
+            generate=$(echo "${row}" | jq -r '.generate // empty')
+
+            if [ -z "${generate}" ]; then
+              echo "No generate config for '${name}', skipping SDK generation."
+              continue
+            fi
+
+            spec_file="api/oapi/${name}/spec3.json"
+            if [ ! -f "${spec_file}" ]; then
+              echo "::warning::Spec file not found for '${name}' at ${spec_file}, skipping SDK generation."
+              continue
+            fi
+
+            package_name=$(echo "${row}" | jq -r '.generate.packageName // .name')
+            additional_props=$(echo "${row}" | jq -r '.generate.additionalProperties // "withGoMod=false"')
+            output_dir="pkg/clients/generated/${name}"
+
+            echo "Generating Go SDK for '${name}' (package: ${package_name})..."
+
+            rm -rf "${output_dir}"
+            mkdir -p "${output_dir}"
+
+            docker run --rm \
+              -v "${PWD}:/local" \
+              -u "$(id -u):$(id -g)" \
+              openapitools/openapi-generator-cli:v7.12.0 generate \
+              -i "/local/${spec_file}" \
+              -g go \
+              -o "/local/${output_dir}" \
+              --package-name "${package_name}" \
+              --additional-properties="${additional_props}" \
+              --git-user-id Dynatrace \
+              --git-repo-id "dynatrace-operator/${output_dir}" \
+              --ignore-file-override "/local/api/oapi/.openapi-generator-ignore"
+
+            echo "SDK generated successfully for '${name}' at ${output_dir}"
+          done
+        env:
+          SCHEMAS_JSON: ${{ needs.prepare.outputs.schemas_json }}
+
+      - name: Tidy Go modules
+        if: steps.sync.outputs.changed == 'true'
+        run: go mod tidy
+
       - name: Create pull request
         if: steps.sync.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
@@ -180,6 +237,9 @@ jobs:
           branch: sync-openapi-schemas
           add-paths: |
             api/oapi/*/spec3.json
+            pkg/clients/generated/
+            go.mod
+            go.sum
           title: "chore: sync OpenAPI schemas (${{ steps.sync.outputs.schemas_summary }})"
           commit-message: "chore: sync OpenAPI schemas (${{ steps.sync.outputs.schemas_summary }})"
           body: ${{ steps.sync.outputs.pr_body }}

@@ -32,13 +32,13 @@ oapi/generate: prerequisites/openapi-generator-cli
 		[ -f "$$spec" ] || { echo "WARNING: $$spec not found, skipping $$name."; continue; }; \
 		echo "Generating $$name ($$gen $$ver, package: $$pkg)..."; \
 		rm -rf "$$out" && mkdir -p "$$out"; \
+		cp "$(OAPI_IGNORE_FILE)" "$$out/.openapi-generator-ignore"; \
 		OPENAPI_GENERATOR_VERSION="$$ver" $(OPENAPI_GENERATOR_CLI) generate \
 			-i "$$spec" -g "$$gen" -o "$$out" \
 			--package-name "$$pkg" \
 			--additional-properties="$$props" \
 			--git-user-id "$(OAPI_GIT_USER_ID)" \
 			--git-repo-id "$(OAPI_GIT_REPO_ID)/$$out" \
-			--ignore-file-override "$(OAPI_IGNORE_FILE)" \
 			--skip-validate-spec; \
 		rm -rf "$$out/test" "$$out/api" "$$out/docs"; \
 		find "$$out" -name '*_test.go' -delete; \

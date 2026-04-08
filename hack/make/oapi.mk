@@ -42,7 +42,7 @@ oapi/generate: prerequisites/openapi-generator-cli
 			--ignore-file-override "$(OAPI_IGNORE_FILE)" \
 			--skip-validate-spec; \
 		## cleanup
-		rm -rf "$$out/test" "$$out/api" "%%out/docs"; \
+		rm -rf "$$out/test" "$$out/api" "$$out/docs"; \
 		find "$$out" -name '*_test.go' -delete; \
 		echo "Done: $$out"; \
 	done

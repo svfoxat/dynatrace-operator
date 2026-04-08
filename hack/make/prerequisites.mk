@@ -27,8 +27,8 @@ HELMUNITTEST_VERSION ?= v1.0.3
 # renovate depName=github.com/vladopajic/go-test-coverage/v2
 GO_TEST_COVERAGE_VERSION ?= v2.18.3
 
-# Enable renovate once project is migrated to newer structure
-OPERATOR_SDK_VERSION ?= v1.36.0
+# renovate depName=@openapitools/openapi-generator-cli
+OPENAPI_GENERATOR_CLI_VERSION ?= 2.15.3
 
 # Tool Binaries
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
@@ -41,6 +41,7 @@ SETUP_ENVTEST ?= $(LOCALBIN)/setup-envtest
 PYTHON ?= $(LOCALBIN)/.venv/bin/python3
 MARKDOWNLINT ?= $(LOCALBIN_NPM)/markdownlint
 MARKDOWN_LINK_CHECK ?= $(LOCALBIN_NPM)/markdown-link-check
+OPENAPI_GENERATOR_CLI ?= $(LOCALBIN_NPM)/openapi-generator-cli
 
 #ENVTEST_VERSION is the version of controller-runtime release branch to fetch the envtest setup script (i.e. release-0.20)
 ENVTEST_VERSION ?= $(shell v='$(call gomodver,sigs.k8s.io/controller-runtime)'; \
@@ -101,6 +102,10 @@ prerequisites/setup-envtest: prerequisites/envtest
 prerequisites/helm-unittest:
 ## TODO: Have version accessible by renovate?
 	hack/helm/install-unittest-plugin.sh $(HELMUNITTEST_VERSION)
+
+## Install 'openapi-generator-cli' if it is missing
+prerequisites/openapi-generator-cli:
+	npm install @openapitools/openapi-generator-cli@$(OPENAPI_GENERATOR_CLI_VERSION)
 
 ## Install 'markdownlint' if it is missing
 prerequisites/markdownlint:

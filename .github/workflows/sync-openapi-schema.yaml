@@ -15,7 +15,6 @@ jobs:
       matrix: ${{ steps.config.outputs.matrix }}
       schemas_json: ${{ steps.config.outputs.schemas_json }}
       has_schemas: ${{ steps.config.outputs.has_schemas }}
-      generator_config_json: ${{ steps.config.outputs.generator_config_json }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -37,9 +36,6 @@ jobs:
             echo "schemas_json=${schemas}" >> "$GITHUB_OUTPUT"
             echo "Schemas (${count}): ${schemas}"
           fi
-
-          generator_config=$(yq -o=json -I=0 '.' api/oapi/generator-config.yaml)
-          echo "generator_config_json=${generator_config}" >> "$GITHUB_OUTPUT"
 
   clone-source:
     name: "Clone source: ${{ matrix.name }}"
@@ -183,65 +179,7 @@ jobs:
 
       - name: Generate Go SDKs
         if: steps.sync.outputs.changed == 'true'
-        run: |
-          set -euo pipefail
-
-          # Read defaults from generator-config.yaml (passed from prepare job)
-          default_generator=$(echo "${GENERATOR_CONFIG_JSON}" | jq -r '.generator')
-          default_version=$(echo "${GENERATOR_CONFIG_JSON}" | jq -r '.generatorVersion')
-          default_output_dir=$(echo "${GENERATOR_CONFIG_JSON}" | jq -r '.outputDir')
-          default_additional_props=$(echo "${GENERATOR_CONFIG_JSON}" | jq -r '.additionalProperties')
-
-          for row in $(echo "${SCHEMAS_JSON}" | jq -c '.[]'); do
-            name=$(echo "${row}" | jq -r '.name')
-            generate=$(echo "${row}" | jq -r '.generate // empty')
-
-            if [ -z "${generate}" ]; then
-              echo "No generate config for '${name}', skipping SDK generation."
-              continue
-            fi
-
-            spec_file="api/oapi/${name}/spec3.json"
-            if [ ! -f "${spec_file}" ]; then
-              echo "::warning::Spec file not found for '${name}' at ${spec_file}, skipping SDK generation."
-              continue
-            fi
-
-            # Per-schema overrides, falling back to defaults from generator-config.yaml
-            generator=$(echo "${row}" | jq -r ".generate.generator // \"${default_generator}\"")
-            version=$(echo "${row}" | jq -r ".generate.generatorVersion // \"${default_version}\"")
-            package_name=$(echo "${row}" | jq -r '.generate.packageName // .name')
-            additional_props=$(echo "${row}" | jq -r ".generate.additionalProperties // \"${default_additional_props}\"")
-            output_dir=$(echo "${row}" | jq -r ".generate.outputDir // \"${default_output_dir}/${name}\"")
-
-            echo "Generating SDK for '${name}' (generator: ${generator}, package: ${package_name}, version: ${version})..."
-
-            rm -rf "${output_dir}"
-            mkdir -p "${output_dir}"
-
-            docker run --rm \
-              -v "${PWD}:/local" \
-              -u "$(id -u):$(id -g)" \
-              "openapitools/openapi-generator-cli:${version}" generate \
-              -i "/local/${spec_file}" \
-              -g "${generator}" \
-              -o "/local/${output_dir}" \
-              --package-name "${package_name}" \
-              --additional-properties="${additional_props}" \
-              --git-user-id "${{ github.repository_owner }}" \
-              --git-repo-id "${{ github.event.repository.name }}/${output_dir}" \
-              --ignore-file-override "/local/api/oapi/.openapi-generator-ignore" \
-              --skip-validate-spec
-
-            # Remove generated test stubs — they hardcode placeholder import paths
-            rm -rf "${output_dir}/test" "${output_dir}/api"
-            find "${output_dir}" -name '*_test.go' -delete
-
-            echo "SDK generated successfully for '${name}' at ${output_dir}"
-          done
-        env:
-          SCHEMAS_JSON: ${{ needs.prepare.outputs.schemas_json }}
-          GENERATOR_CONFIG_JSON: ${{ needs.prepare.outputs.generator_config_json }}
+        run: make oapi/generate
 
       - name: Tidy Go modules
         if: steps.sync.outputs.changed == 'true'

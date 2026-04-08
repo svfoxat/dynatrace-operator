@@ -21,7 +21,6 @@ OAPI_GIT_REPO_ID ?= $(lastword $(subst /, ,$(OAPI_GIT_REMOTE)))
 oapi/generate: prerequisites/openapi-generator-cli
 	@yq -o=json '.schemas | map(select(.generate))' "$(OAPI_SYNC_CONFIG)" \
 	| jq -c '.[]' \
-	## for every spec defined in OAPI_SYNC_CONFIG build a package
 	| while read -r row; do \
 		name=$$(echo "$$row" | jq -r '.name'); \
 		pkg=$$(echo "$$row" | jq -r '.generate.packageName // .name'); \
@@ -41,7 +40,6 @@ oapi/generate: prerequisites/openapi-generator-cli
 			--git-repo-id "$(OAPI_GIT_REPO_ID)/$$out" \
 			--ignore-file-override "$(OAPI_IGNORE_FILE)" \
 			--skip-validate-spec; \
-		## cleanup
 		rm -rf "$$out/test" "$$out/api" "$$out/docs"; \
 		find "$$out" -name '*_test.go' -delete; \
 		echo "Done: $$out"; \

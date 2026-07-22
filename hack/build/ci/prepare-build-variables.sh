@@ -4,7 +4,7 @@ create_docker_image_tag() {
   if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
     head_ref=$(hack/build/ci/sanitize-branch-name.sh "${GITHUB_HEAD_REF}")
     echo "snapshot-${head_ref}"; return
-  elif [[ "${GITHUB_EVENT_NAME}" == "schedule" ]]; then # nightly builds
+  elif [[ "${GITHUB_EVENT_NAME}" == "schedule" || "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then # nightly builds # TODO: remove workflow_dispatch before merging to main
     echo "nightly-$(date --iso-8601)"; return
   fi
 

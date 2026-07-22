@@ -68,11 +68,11 @@ runs:
           type=raw,value=snapshot-${{ steps.sanitize.outputs.head_ref }},enable=${{ github.event_name == 'pull_request' }}
 
           # main branches (not including nightly builds)
-          type=raw,value=snapshot,enable=${{ github.ref_name == 'main' && github.event_name != 'schedule' }}
+          type=raw,value=snapshot,enable=${{ github.ref_name == 'main' && github.event_name != 'schedule' && github.event_name != 'workflow_dispatch' }}
 
           # nightly builds
-          type=raw,value=nightly-${{ steps.set-build-date.outputs.date }},enable=${{ github.event_name == 'schedule' }}
-          type=raw,value=nightly,enable=${{ github.event_name == 'schedule' }}
+          type=raw,value=nightly-${{ steps.set-build-date.outputs.date }},enable=${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+          type=raw,value=nightly,enable=${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
 
           # tags
           type=raw,value=${{ steps.sanitize.outputs.ref_name }},enable=${{ github.ref_type == 'tag' }}

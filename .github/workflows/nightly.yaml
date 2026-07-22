@@ -216,7 +216,7 @@ jobs:
           cosign-private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
           cosign-password: ${{ secrets.COSIGN_PASSWORD }}
           registry-url: ghcr.io
-          registry-namespace: dynatrace
+          registry-namespace: ${{ github.repository_owner }} # TODO: remove before merging to main, original: dynatrace
           helm-repository-name: dynatrace-operator
           image-tag-prefix: "0.0.0-"
           mutable-nightly-tag: "nightly-chart"

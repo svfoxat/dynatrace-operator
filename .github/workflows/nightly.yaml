@@ -2,7 +2,7 @@ name: Nightly build
 
 on:
   schedule:
-    - cron: "*/15 * * * *" # TODO: remove before merging to main, original: 0 0 * * 1-5
+    - cron: "0 0 * * 1-5" # TODO: remove before merging to main, original: 0 0 * * 1-5
   workflow_dispatch: # TODO: remove before merging to main
 
 # TODO: remove before merging to main
